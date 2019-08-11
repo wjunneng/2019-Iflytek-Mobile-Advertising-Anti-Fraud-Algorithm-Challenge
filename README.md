@@ -1,5 +1,7 @@
 # Iflytek-Mobile-Advertising-Anti-Fraud-Algorithm-Challenge
-2019 iFlytek 移动广告反欺诈算法挑战赛
+2019 iFlytek 移动广告反欺诈算法挑战赛 
+
+队伍编号：人工执杖
 
 
 赛事概要
