@@ -7,7 +7,9 @@ from demo.config import DefaultConfig
 def main():
     start = time.clock()
 
-    if os.path.exists(DefaultConfig.traindata_cache_path) and os.path.exists(DefaultConfig.testdata_cache_path):
+    not_replace = False
+
+    if os.path.exists(DefaultConfig.traindata_cache_path) and os.path.exists(DefaultConfig.testdata_cache_path) and not_replace:
         # 训练集
         train = reduce_mem_usage(pd.read_hdf(path_or_buf=DefaultConfig.traindata_cache_path, mode='r', key='train'))
         # 标签
@@ -36,12 +38,21 @@ def main():
         traindata = add_nginxtime_begintime(traindata)
         print('训练集 请求会话时间 与 请求到达服务时间的差 耗时： %s \n' % str(time.clock() - start))
 
+        # 设备信息：处理横竖屏
+        traindata = deal_orientation(traindata)
+        print('训练集 处理横竖屏 耗时： %s \n' % str(time.clock() - start))
+
         # 合并训练、测试集
         data = merge_train_test_data(traindata, testdata_feature)
         print('合并训练、测试集 耗时： %s \n' % str(time.clock() - start))
 
-        # 处理时间
-        data = conversion_time(data, ['nginxtime', 'begintime'])
+        # # 时间：处理时间 效果不好
+        # data = conversion_time(data, ['nginxtime', 'begintime'])
+        # print('数据集 处理时间 耗时： %s \n' % str(time.clock() - start))
+
+        # 设备信息：处理操作系统
+        data = deal_os(data)
+        print('数据集 处理操作系统 耗时： %s \n' % str(time.clock() - start))
 
         # 对除了'sid'外的columns进行one_hot编码
         data = one_hot_col(data)

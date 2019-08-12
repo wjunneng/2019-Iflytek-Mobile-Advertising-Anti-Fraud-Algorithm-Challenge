@@ -31,7 +31,8 @@ class DefaultConfig(object):
     traindata_cache_path = project_path + '/data/cache/traindata.h5'
     testdata_cache_path = project_path + '/data/cache/testdata_feature.h5'
     label_cache_path = project_path + '/data/cache/label.h5'
-    feature_cache_path = project_path + '/data/cache/feature.h5'
+    lgb_feature_cache_path = project_path + '/data/cache/feature_lgb.h5'
+    xgb_feature_cache_path = project_path + '/data/cache/feature_xgb.h5'
 
     # save
     save = True

@@ -29,9 +29,13 @@
 
 数据类别	变量	                         数值格式	           解释
 
+
+
 基本数据	sid	                             string	                 样本id/请求会话sid
 
 基本数据	label	                         int	                       是否作弊
+
+
 
 媒体信息	pkgname	                string	                包名(MD5加密)
 
@@ -43,7 +47,12 @@
 
 媒体信息	apptype	                  int	                         app所属分类
 
+
+
+
 时间	         nginxtime	              bigint	                请求到达服务时间，单位ms
+
+
 
 IP信息	     ip	                               string	                  客户端IP地址
 
@@ -52,6 +61,8 @@ IP信息	     city	                            string	                 城市
 IP信息	     province                  string	                  省份
 
 IP信息	     reqrealip	               string	                    请求的http协议头携带IP，有可能是下游服务器的ip
+
+
 
 设备信息	adidmd5	                string	                    Adroid ID的MD5值
 
@@ -86,6 +97,9 @@ IP信息	     reqrealip	               string	                    请求的http�
 设备信息	w	                                int	                           设备宽
 
 设备信息	ppi                            	 int	                          屏幕密度
+
+
+
 
 2. 评估指标
 
@@ -133,3 +147,15 @@ IP信息	     reqrealip	               string	                    请求的http�
 其他奖项
 
 除对应奖金外，入围复赛的团队将获得定制Geek礼包、大赛入围证书、定制文化衫及科大讯飞全球1024开发者节通票等福利。
+
+
+问题：
+
+
+
+
+一、[设备信息] 
+    1、操作系统【os】 仅为：['Android' 'android']？
+        通过转换为小写，然后判断这列数据是否相同如果相同则删除掉。
+    
+    

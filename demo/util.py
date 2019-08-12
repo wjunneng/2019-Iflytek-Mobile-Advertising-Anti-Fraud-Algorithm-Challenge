@@ -81,12 +81,12 @@ def conversion_time(df, columns, **params):
     """
     for column in columns:
         # 本题所给时间戳为毫秒级，故需除以1000转换为秒级：时间戳转成日期格式
-        df[column] = df[column].apply(lambda x: pd.to_datetime(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(int(x) / 1000)))))
+        df[column] = df[column].apply(
+            lambda x: pd.to_datetime(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(int(x) / 1000)))))
         df[column + '_hour'] = df[column].dt.hour.astype('int')
         df[column + '_quarter'] = df[column].dt.quarter.astype('int')
         df[column + '_day'] = df[column].dt.day.astype('int')
         df[column + '_month'] = df[column].dt.month.astype('int')
-        df[column + '_year'] = df[column].dt.year.astype('int')
 
     return df
 
@@ -115,6 +115,36 @@ def one_hot_col(df, **params):
     for col in object_cols:
         if col != 'sid':
             df[col] = lbl.fit(df[col].astype('str')).transform(df[col].astype('str'))
+
+    return df
+
+
+def deal_os(df, **params):
+    """
+    处理操作系统
+    :param df:
+    :param params:
+    :return:
+    """
+    if 'os' in df.columns:
+        # 先将所有值转化为小写
+        df['os'] = df['os'].apply(lambda x: x.lower())
+        # 如果所有值都相同，则剔除
+        if len(set(df['os'])) is 1:
+            del df['os']
+
+    return df
+
+
+def deal_orientation(df, **params):
+    """
+    剔除非0和1的数据 【即非横/竖屏的数据】
+    :param df:
+    :param params:
+    :return:
+    """
+    df = df[(df['orientation'].astype(int) == 0) | (df['orientation'].astype(int) == 1) | (
+            df['orientation'].astype(int) == 90)]
 
     return df
 
@@ -171,10 +201,10 @@ def xgb_model(new_train, y, new_test, columns, **params):
                   'eval_metric': 'auc',
                   'silent': True,
                   }
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=2019)
+    skf = StratifiedKFold(n_splits=2, shuffle=True, random_state=2019)
     oof_xgb = np.zeros(new_train.shape[0])
     prediction_xgb = np.zeros(new_test.shape[0])
-    feature_importance_df = pd.DataFrame()  # 存放特征重要性
+    cv_model = []
     for i, (tr, va) in enumerate(skf.split(new_train, y)):
         print('fold:', i + 1, 'training')
         dtrain = xgb.DMatrix(new_train[tr], y[tr])
@@ -182,18 +212,15 @@ def xgb_model(new_train, y, new_test, columns, **params):
         watchlist = [(dtrain, 'train'), (dvalid, 'valid_data')]
         bst = xgb.train(dtrain=dtrain, num_boost_round=30000, evals=watchlist, early_stopping_rounds=200,
                         verbose_eval=50, params=xgb_params)
+
+        cv_model.append(bst)
+
         oof_xgb[va] += bst.predict(xgb.DMatrix(new_train[va]), ntree_limit=bst.best_ntree_limit)
         prediction_xgb += bst.predict(xgb.DMatrix(new_test), ntree_limit=bst.best_ntree_limit)
 
-        fold_importance_df = pd.DataFrame()
-        fold_importance_df["feature"] = columns
-        fold_importance_df["importance"] = bst.feature_importance(importance_type='split', iteration=bst.best_iteration)
-        fold_importance_df["fold"] = i + 1
-        feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
-
     print('the roc_auc_score for train:', roc_auc_score(y, oof_xgb))
     prediction_xgb /= 5
-    return oof_xgb, prediction_xgb, feature_importance_df
+    return oof_xgb, prediction_xgb, cv_model
 
 
 def lgb_model(new_train, y, new_test, columns, **params):
@@ -285,18 +312,32 @@ def model_predict(traindata, label, testdata, **params):
 
     for model in list(DefaultConfig.select_model):
         if model is 'lgb':
+            print('model is :', model)
             # 模型训练预测：
             oof_lgb, prediction_lgb, feature_importance_df = lgb_model(train, label, test, columns)
 
             # 保存feature_importance_df
-            feature_importance_df.to_hdf(path_or_buf=DefaultConfig.feature_cache_path, key='lgb')
+            feature_importance_df.to_hdf(path_or_buf=DefaultConfig.lgb_feature_cache_path, key='lgb')
 
             # 保存结果
             save_result(model, testdata, prediction_lgb)
 
         elif model is 'xgb':
+            print('model is :', model)
             # 模型训练预测：
-            oof_lgb, prediction_xgb, feature_importance_df = xgb_model(train, label, test, columns)
+            oof_lgb, prediction_xgb, cv_model = xgb_model(train, label, test, columns)
+
+            fi = []
+            for i in cv_model:
+                tmp = {
+                    'name': columns,
+                    'score': i.booster().get_score(importance_type='weight')
+                }
+                fi.append(pd.DataFrame(tmp))
+
+            fi = pd.concat(fi)
+            # 保存feature_importance_df
+            fi.to_hdf(path_or_buf=DefaultConfig.xgb_feature_cache_path, key='xgb')
 
             # 保存结果
             save_result(model, testdata, prediction_xgb)
@@ -310,9 +351,10 @@ def draw_feature(models, **params):
     :return:
     """
     for model in models:
-        if os.path.exists(DefaultConfig.feature_cache_path):
+        if os.path.exists(DefaultConfig.lgb_feature_cache_path):
             # 读取feature_importance_df
-            feature_importance_df = reduce_mem_usage(pd.read_hdf(path_or_buf=DefaultConfig.feature_cache_path, key=model, mode='r'))
+            feature_importance_df = reduce_mem_usage(
+                pd.read_hdf(path_or_buf=DefaultConfig.lgb_feature_cache_path, key=model, mode='r'))
 
             plt.figure(figsize=(8, 8))
             # 按照flod分组
@@ -327,4 +369,14 @@ def draw_feature(models, **params):
             result = pd.concat(result)
             # 5折数据取平均值
             result.groupby(['feature'])['importance'].agg('mean').sort_values(ascending=False).head(40).plot.barh()
+            plt.show()
+
+        if os.path.exists(DefaultConfig.xgb_feature_cache_path):
+            # 读取feature_importance_df
+            feature_importance_df = reduce_mem_usage(
+                pd.read_hdf(path_or_buf=DefaultConfig.xgb_feature_cache_path, key=model, mode='r'))
+
+            plt.figure(figsize=(8, 8))
+            feature_importance_df.groupby(['name'])['score'].agg('mean').sort_values(ascending=False).head(
+                40).plot.barh()
             plt.show()
