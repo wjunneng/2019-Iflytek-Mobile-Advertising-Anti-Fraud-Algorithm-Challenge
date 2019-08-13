@@ -42,19 +42,19 @@ def main():
         data = merge_train_test_data(traindata, testdata_feature)
         print('合并训练、测试集 耗时： %s \n' % str(time.clock() - start))
 
-        # 设备信息：处理横竖屏   记住此处有删除数据的部分，后面划分训练集和测试集要小心。
+        # 设备信息：处理横竖屏   记住此处有删除数据的部分,后面划分训练集和测试集要小心.  【up:0.009】
         data = deal_orientation(data)
         print('训练集 处理横竖屏 耗时： %s \n' % str(time.clock() - start))
 
-        # # 时间：处理时间 效果不好
+        # # 时间：处理时间 效果不好    【down:0.0011】
         # data = conversion_time(data, ['nginxtime', 'begintime'])
         # print('数据集 处理时间 耗时： %s \n' % str(time.clock() - start))
 
-        # 设备信息：处理操作系统
+        # 设备信息：处理操作系统   【up:0.05】
         data = deal_os(data)
         print('数据集 处理操作系统 耗时： %s \n' % str(time.clock() - start))
 
-        # 设备信息：语言
+        # 设备信息：语言   【up:0.027】
         data = deal_lan(data)
         print('数据集 处理语言 耗时： %s \n' % str(time.clock() - start))
 
