@@ -103,22 +103,6 @@ def merge_train_test_data(train, test):
     return df
 
 
-def one_hot_col(df, **params):
-    """
-    标签编码
-    :param df:
-    :return:
-    """
-    object_cols = list(df.dtypes[df.dtypes == np.object].index)
-
-    lbl = preprocessing.LabelEncoder()
-    for col in object_cols:
-        if col != 'sid':
-            df[col] = lbl.fit(df[col].astype('str')).transform(df[col].astype('str'))
-
-    return df
-
-
 def deal_os(df, **params):
     """
     处理操作系统
@@ -146,6 +130,48 @@ def deal_orientation(df, **params):
     # 转化 orientation
     df['orientation'] = df['orientation'].replace(float(90.0), float(0.0))
     df['orientation'] = df['orientation'].replace(float(2.0), float(0.0))
+
+    return df
+
+
+def deal_lan(df, **params):
+    """
+    处理语言
+    :param df:
+    :param params:
+    :return:
+    """
+    df['lan'] = df['lan'].fillna(0)
+
+    df['lan'] = df['lan'].apply(lambda x: str(x).lower())
+    # 优先处理cn: 1
+    df['lan'] = df['lan'].apply(lambda x: '1' if 'cn' in str(x) else x)
+    # 处理tw： 2
+    df['lan'] = df['lan'].apply(lambda x: '2' if 'tw' in str(x) else x)
+    # 处理hk: 2
+    df['lan'] = df['lan'].apply(lambda x: '2' if 'hk' in str(x) else x)
+    # 处理en: 3
+    df['lan'] = df['lan'].apply(lambda x: '3' if 'en' in str(x) else x)
+    # 处理zh: 1
+    df['lan'] = df['lan'].apply(lambda x: '1' if 'zh' in str(x) else x)
+    # 其他： 4
+    df['lan'] = df['lan'].apply(lambda x: '4' if not x in ['0', '1', '2', '3'] else x)
+
+    return df
+
+
+def one_hot_col(df, **params):
+    """
+    标签编码
+    :param df:
+    :return:
+    """
+    object_cols = list(df.dtypes[df.dtypes == np.object].index)
+
+    lbl = preprocessing.LabelEncoder()
+    for col in object_cols:
+        if col != 'sid':
+            df[col] = lbl.fit(df[col].astype('str')).transform(df[col].astype('str'))
 
     return df
 

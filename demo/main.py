@@ -54,6 +54,10 @@ def main():
         data = deal_os(data)
         print('数据集 处理操作系统 耗时： %s \n' % str(time.clock() - start))
 
+        # 设备信息：语言
+        data = deal_lan(data)
+        print('数据集 处理语言 耗时： %s \n' % str(time.clock() - start))
+
         # 对除了'sid'外的columns进行one_hot编码
         data = one_hot_col(data)
         print('对除了“sid”外的columns进行one_hot编码 耗时： %s \n' % str(time.clock() - start))
@@ -66,6 +70,7 @@ def main():
         print('划分数据 耗时： %s \n' % str(time.clock() - start))
 
         print('训练集和测试集 shape:', train.shape, test.shape)
+        print('\n')
 
         if DefaultConfig.save:
             train.to_hdf(path_or_buf=DefaultConfig.traindata_cache_path, key='train')
