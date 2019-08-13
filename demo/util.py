@@ -143,8 +143,9 @@ def deal_orientation(df, **params):
     :param params:
     :return:
     """
-    df = df[(df['orientation'].astype(int) == 0) | (df['orientation'].astype(int) == 1) | (
-            df['orientation'].astype(int) == 90)]
+    # 转化 orientation
+    df['orientation'] = df['orientation'].replace(float(90.0), float(0.0))
+    df['orientation'] = df['orientation'].replace(float(2.0), float(0.0))
 
     return df
 
@@ -246,6 +247,8 @@ def lgb_model(new_train, y, new_test, columns, **params):
         'max_depth': -1,
         'seed': 42,
     }
+    print(y)
+
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=2019)
     oof_lgb = np.zeros(new_train.shape[0])  # 用于存放训练集概率，由每折验证集所得
     prediction_lgb = np.zeros(new_test.shape[0])  # 用于存放测试集概率，k折最后要除以k取平均
@@ -269,6 +272,7 @@ def lgb_model(new_train, y, new_test, columns, **params):
         feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
 
     print('the roc_auc_score for train:', roc_auc_score(y, oof_lgb))  # 线下auc评分
+
     prediction_lgb /= 5
     return oof_lgb, prediction_lgb, feature_importance_df
 

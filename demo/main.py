@@ -38,13 +38,13 @@ def main():
         traindata = add_nginxtime_begintime(traindata)
         print('训练集 请求会话时间 与 请求到达服务时间的差 耗时： %s \n' % str(time.clock() - start))
 
-        # 设备信息：处理横竖屏
-        traindata = deal_orientation(traindata)
-        print('训练集 处理横竖屏 耗时： %s \n' % str(time.clock() - start))
-
         # 合并训练、测试集
         data = merge_train_test_data(traindata, testdata_feature)
         print('合并训练、测试集 耗时： %s \n' % str(time.clock() - start))
+
+        # 设备信息：处理横竖屏   记住此处有删除数据的部分，后面划分训练集和测试集要小心。
+        data = deal_orientation(data)
+        print('训练集 处理横竖屏 耗时： %s \n' % str(time.clock() - start))
 
         # # 时间：处理时间 效果不好
         # data = conversion_time(data, ['nginxtime', 'begintime'])
@@ -59,10 +59,13 @@ def main():
         print('对除了“sid”外的columns进行one_hot编码 耗时： %s \n' % str(time.clock() - start))
 
         # 划分数据：
-        train = data[:traindata.shape[0]]
+        train = data[data['label'] != -1]
         label = train['label']
-        test = data[traindata.shape[0]:].reset_index(drop=True)
+
+        test = data[data['label'] == -1].reset_index(drop=True)
         print('划分数据 耗时： %s \n' % str(time.clock() - start))
+
+        print('训练集和测试集 shape:', train.shape, test.shape)
 
         if DefaultConfig.save:
             train.to_hdf(path_or_buf=DefaultConfig.traindata_cache_path, key='train')
