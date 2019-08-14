@@ -34,6 +34,9 @@ class DefaultConfig(object):
     lgb_feature_cache_path = project_path + '/data/cache/feature_lgb.h5'
     xgb_feature_cache_path = project_path + '/data/cache/feature_xgb.h5'
 
+    # foreign
+    china_city_list_path = project_path + '/data/foreign/china_city_list.json'
+
     # save
     save = True
 

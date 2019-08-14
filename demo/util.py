@@ -5,11 +5,11 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import StratifiedKFold
-
 import lightgbm as lgb
 import xgboost as xgb
-from demo.config import DefaultConfig
 from sklearn import preprocessing
+
+from config import DefaultConfig
 
 
 def get_testdata_feature(**params):
@@ -103,6 +103,125 @@ def merge_train_test_data(train, test):
     return df
 
 
+def deal_idfamd5(df, **params):
+    """
+    处理idfamd5
+    :param df:
+    :param params:
+    :return:
+    """
+    del df['idfamd5']
+
+    return df
+
+
+def deal_dvctype(df, **params):
+    """
+    返回设备类型
+    :param df:
+    :param params:
+    :return:
+    """
+    df['dvctype'] = df['dvctype'].apply(lambda x: str(x))
+
+    return df
+
+
+def deal_ntt(df, **params):
+    """
+    处理ntt
+    :param df:
+    :param params:
+    :return:
+    """
+    df['ntt'] = df['ntt'].apply(lambda x: str(x))
+    # df['ntt_type'] = df['ntt'].apply(lambda x: str(2) if int(float(x)) in [2, 3, 4, 5, 6, 7] else x)
+
+    return df
+
+
+def deal_city_province(df, **params):
+    """
+    处理城市和省份
+    :param df:
+    :param params:
+    :return:
+    """
+    import json
+
+    # 中国省市编码地址
+    china_city_list_path = DefaultConfig.china_city_list_path
+
+    # 省
+    provinces = {}
+
+    # 市
+    cities = {}
+
+    # 读取json
+    with open(china_city_list_path, 'r') as file:
+        # 读取所有省市数据
+        china_city_list = json.load(file)
+
+        for province in china_city_list:
+            # key:province/value:code
+            provinces[province['province']] = province['code']
+
+            for city in province['cities']:
+                # key:city/value:code
+                cities[city['name']] = city['code']
+
+    china_city_list = df['city']
+    china_city_list = china_city_list.fillna(0)
+
+    china_city_list_code = []
+    china_province_list_code = []
+
+    # 遍历获取code
+    for city in china_city_list.values:
+        # 是否在provinces中
+        if city in dict.fromkeys(provinces.keys(), True):
+            tmp = provinces[city]
+            china_city_list_code.append(tmp)
+            china_province_list_code.append(tmp[:2])
+
+        # 是否在cities中
+        elif city in dict.fromkeys(cities.keys(), True):
+            tmp = cities[city]
+            china_city_list_code.append(tmp)
+            china_province_list_code.append(tmp[:2])
+
+        # 不存在
+        else:
+            china_city_list_code.append('100000')
+            china_province_list_code.append('10')
+
+            if city != 0 and city != u'自治区直辖县级行政区划':
+                print(city)
+
+    # 替换
+    df['city'] = china_city_list_code
+    df['province'] = china_province_list_code
+
+    return df
+
+
+def deal_carrier(df, **params):
+    """
+    处理运营商
+    :param df:
+    :param params:
+    :return:
+    """
+    df['carrier'] = df['carrier'].apply(lambda x: str(1) if int(x) == 0 else x)
+    df['carrier'] = df['carrier'].apply(lambda x: str(2) if int(x) == 46000 else x)
+    df['carrier'] = df['carrier'].apply(lambda x: str(3) if int(x) == 46001 else x)
+    df['carrier'] = df['carrier'].apply(lambda x: str(4) if int(x) == 46003 else x)
+    df['carrier'] = df['carrier'].apply(lambda x: str(5) if str(x) not in [str(1), str(2), str(3), str(4)] else x)
+
+    return df
+
+
 def deal_os(df, **params):
     """
     处理操作系统
@@ -168,6 +287,7 @@ def one_hot_col(df, **params):
     """
     object_cols = list(df.dtypes[df.dtypes == np.object].index)
 
+    print('one_hot 处理的特征列： %s' % ' '.join(object_cols))
     lbl = preprocessing.LabelEncoder()
     for col in object_cols:
         if col != 'sid':
