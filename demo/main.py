@@ -43,8 +43,8 @@ def main():
         print('合并训练、测试集 耗时： %s \n' % str(time.clock() - start))
 
         # 媒体信息：处理app所属类别    【up：0.01】
-        # data = deal_apptype(data)
-        # print('处理app 耗时： %s \n' % str(time.clock() - start))
+        data = deal_apptype(data)
+        print('处理app 耗时： %s \n' % str(time.clock() - start))
 
         # IP信息：处理城市和省份  【up:0.01】
         data = deal_city_province(data)
@@ -54,7 +54,7 @@ def main():
         data = deal_orientation(data)
         print('训练集 处理横竖屏 耗时： %s \n' % str(time.clock() - start))
 
-        # # 时间：处理时间 效果不好    【down:0.0011】
+        # # # 时间：处理时间 效果不好    【down:0.0011】
         # data = conversion_time(data, ['nginxtime', 'begintime'])
         # print('数据集 处理时间 耗时： %s \n' % str(time.clock() - start))
 
@@ -82,7 +82,7 @@ def main():
         data = deal_lan(data)
         print('数据集 处理语言 耗时： %s \n' % str(time.clock() - start))
 
-        # 设备信息：长/宽/密度   mean【down0.01】/median【比mean好0.01】/mode【比median好0.01】   area【】/aspect_ratio【】
+        # 设备信息：长/宽/密度   mean【down0.01】/median【比mean好0.01】/mode【比median好0.01】   area【0.001】/aspect_ratio【0.001】
         data = deal_h_w_ppi(data, 'mode')
         print('数据集 长/宽/密度 耗时： %s \n' % str(time.clock() - start))
 

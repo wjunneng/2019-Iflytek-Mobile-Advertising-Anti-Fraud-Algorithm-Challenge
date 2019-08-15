@@ -69,6 +69,11 @@ def add_nginxtime_begintime(df, **params):
     """
     df['nginxtime-begintime'] = df['nginxtime'] - df['begintime']
 
+    # 归一化函数
+    max_min_scaler = lambda x: (x - np.min(x)) / (np.max(x) - np.min(x))
+
+    df['nginxtime-begintime'] = df[['nginxtime-begintime']].apply(max_min_scaler)
+
     return df
 
 
@@ -331,6 +336,8 @@ def deal_h_w_ppi(df, fillna_type, **params):
     df['h'] = df[['h']].apply(max_min_scaler)
     df['w'] = df[['w']].apply(max_min_scaler)
     df['ppi'] = df[['ppi']].apply(max_min_scaler)
+    df['area'] = df[['area']].apply(max_min_scaler)
+    df['aspect_ratio'] = df[['aspect_ratio']].apply(max_min_scaler)
 
     return df
 
@@ -461,7 +468,7 @@ def lgb_model(new_train, y, new_test, columns, **params):
         dvalid = lgb.Dataset(new_train[va], y[va], reference=dtrain)
         # 训练：
         bst = lgb.train(params, dtrain, num_boost_round=30000, valid_sets=dvalid, verbose_eval=400,
-                        early_stopping_rounds=200)
+                        early_stopping_rounds=100)
         # 预测验证集：
         oof_lgb[va] += bst.predict(new_train[va], num_iteration=bst.best_iteration)
         # 预测测试集：
