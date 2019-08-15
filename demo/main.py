@@ -1,7 +1,7 @@
 import time
 import os
-from .util import *
-from .config import DefaultConfig
+from util import *
+from config import DefaultConfig
 
 
 def main():
