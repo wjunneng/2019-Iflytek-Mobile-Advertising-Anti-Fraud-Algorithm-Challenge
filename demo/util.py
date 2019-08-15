@@ -140,6 +140,18 @@ def deal_ntt(df, **params):
     return df
 
 
+def deal_apptype(df, **params):
+    """
+    处理apptype
+    :param df:
+    :param params:
+    :return:
+    """
+    df['apptype'] = df['apptype'].apply(lambda x: str(x))
+
+    return df
+
+
 def deal_city_province(df, **params):
     """
     处理城市和省份
@@ -213,11 +225,12 @@ def deal_carrier(df, **params):
     :param params:
     :return:
     """
-    df['carrier'] = df['carrier'].apply(lambda x: str(1) if int(x) == 0 else x)
-    df['carrier'] = df['carrier'].apply(lambda x: str(2) if int(x) == 46000 else x)
-    df['carrier'] = df['carrier'].apply(lambda x: str(3) if int(x) == 46001 else x)
-    df['carrier'] = df['carrier'].apply(lambda x: str(4) if int(x) == 46003 else x)
-    df['carrier'] = df['carrier'].apply(lambda x: str(5) if str(x) not in [str(1), str(2), str(3), str(4)] else x)
+    df['carrier'] = df['carrier'].apply(lambda x: str(0) if int(x) == 0 else x)
+    df['carrier'] = df['carrier'].apply(lambda x: str(46000) if int(x) == 46000 else x)
+    df['carrier'] = df['carrier'].apply(lambda x: str(46001) if int(x) == 46001 else x)
+    df['carrier'] = df['carrier'].apply(lambda x: str(46003) if int(x) == 46003 else x)
+    df['carrier'] = df['carrier'].apply(
+        lambda x: str(1) if str(x) not in [str(0), str(46000), str(46001), str(46003)] else x)
 
     return df
 
@@ -275,6 +288,49 @@ def deal_lan(df, **params):
     df['lan'] = df['lan'].apply(lambda x: '1' if 'zh' in str(x) else x)
     # 其他： 4
     df['lan'] = df['lan'].apply(lambda x: '4' if not x in ['0', '1', '2', '3'] else x)
+
+    return df
+
+
+def deal_h_w_ppi(df, fillna_type, **params):
+    """
+    处理宽高/密度
+    :param df:
+    :param params:
+    :return:
+    """
+    import numpy as np
+
+    if fillna_type is 'mean':
+        # 利用均值填充
+        df['h'].replace(0, df['h'].mean(), inplace=True)
+        df['w'].replace(0, df['w'].mean(), inplace=True)
+        df['ppi'].replace(0, df['ppi'].mean(), inplace=True)
+
+    elif fillna_type is 'median':
+        # 利用均值填充
+        df['h'].replace(0, df['h'].median(), inplace=True)
+        df['w'].replace(0, df['w'].median(), inplace=True)
+        df['ppi'].replace(0, df['ppi'].median(), inplace=True)
+
+    elif fillna_type is 'mode':
+        # 利用众数填充
+        df['h'].replace(0, df['h'].mode().max(), inplace=True)
+        df['w'].replace(0, df['w'].mode().max(), inplace=True)
+        df['ppi'].replace(0, df['ppi'].mode().max(), inplace=True)
+
+    # 归一化函数
+    max_min_scaler = lambda x: (x - np.min(x)) / (np.max(x) - np.min(x))
+
+    # # 添加面积列
+    df['area'] = df['h'] * df['w']
+    #
+    # # 添加宽高列
+    df['aspect_ratio'] = df['h'] / df['w']
+
+    df['h'] = df[['h']].apply(max_min_scaler)
+    df['w'] = df[['w']].apply(max_min_scaler)
+    df['ppi'] = df[['ppi']].apply(max_min_scaler)
 
     return df
 

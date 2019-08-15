@@ -42,6 +42,10 @@ def main():
         data = merge_train_test_data(traindata, testdata_feature)
         print('合并训练、测试集 耗时： %s \n' % str(time.clock() - start))
 
+        # 媒体信息：处理app所属类别    【up：0.01】
+        # data = deal_apptype(data)
+        # print('处理app 耗时： %s \n' % str(time.clock() - start))
+
         # IP信息：处理城市和省份  【up:0.01】
         data = deal_city_province(data)
         print('处理城市和省份 耗时： %s \n' % str(time.clock() - start))
@@ -54,23 +58,21 @@ def main():
         # data = conversion_time(data, ['nginxtime', 'begintime'])
         # print('数据集 处理时间 耗时： %s \n' % str(time.clock() - start))
 
-        # 设备信息：处理idfamd5    【up:?】
+        # 设备信息：处理idfamd5    【up:0.01】
         data = deal_idfamd5(data)
         print('数据集 设备信息 耗时： %s \n' % str(time.clock() - start))
 
-        # -----------down
-        # 设备信息：处理设备类型
+        # 设备信息：处理设备类型   【up:0.001】
         data = deal_dvctype(data)
         print('数据集 设备类型 耗时： %s \n' % str(time.clock() - start))
 
-        # 设备信息：处理网络类型
+        # 设备信息：处理网络类型   【up:0.001】
         data = deal_ntt(data)
         print('数据集 处理网络类型 耗时： %s \n' % str(time.clock() - start))
 
-        # 设备信息:处理运营商   估计很有问题 明天；注释设备信息；运行之
-        # data = deal_carrier(data)
-        # print('数据集 处理运营商 耗时： %s \n' % str(time.clock() - start))
-        # -----------down
+        # 设备信息:处理运营商   【up：0.014】
+        data = deal_carrier(data)
+        print('数据集 处理运营商 耗时： %s \n' % str(time.clock() - start))
 
         # 设备信息：处理操作系统   【up:0.05】
         data = deal_os(data)
@@ -79,6 +81,10 @@ def main():
         # 设备信息：语言   【up:0.027】
         data = deal_lan(data)
         print('数据集 处理语言 耗时： %s \n' % str(time.clock() - start))
+
+        # 设备信息：长/宽/密度   mean【down0.01】/median【比mean好0.01】/mode【比median好0.01】   area【】/aspect_ratio【】
+        data = deal_h_w_ppi(data, 'mode')
+        print('数据集 长/宽/密度 耗时： %s \n' % str(time.clock() - start))
 
         # 对除了'sid'外的columns进行one_hot编码
         data = one_hot_col(data)

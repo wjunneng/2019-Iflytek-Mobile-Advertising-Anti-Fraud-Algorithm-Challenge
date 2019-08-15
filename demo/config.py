@@ -36,6 +36,10 @@ class DefaultConfig(object):
 
     # foreign
     china_city_list_path = project_path + '/data/foreign/china_city_list.json'
+    # train foreign
+    traindata_ip_path = project_path + '/data/foreign/traindata_ip.json'
+    # test foreign
+    testdata_feature_ip_path = project_path + '/data/foreign/testdata_feature_ip.json'
 
     # save
     save = True
