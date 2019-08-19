@@ -9,7 +9,7 @@ import lightgbm as lgb
 import xgboost as xgb
 from sklearn import preprocessing
 
-from demo.config import DefaultConfig
+from config import DefaultConfig
 
 
 def get_testdata_feature(**params):
@@ -88,6 +88,7 @@ def conversion_time(df, columns, **params):
         # 本题所给时间戳为毫秒级，故需除以1000转换为秒级：时间戳转成日期格式
         df[column] = df[column].apply(
             lambda x: pd.to_datetime(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(int(x) / 1000)))))
+        df[column + '_minute'] = df[column].dt.minute.astype('int')
         df[column + '_hour'] = df[column].dt.hour.astype('int')
         df[column + '_day'] = df[column].dt.day.astype('int')
 
@@ -154,7 +155,7 @@ def deal_ver(df, **params):
     df['ver_2'] = ver_2
     df['ver_3'] = ver_3
 
-    del df['ver']
+    # del df['ver']
 
     return df
 
@@ -171,6 +172,54 @@ def deal_apptype(df, **params):
     return df
 
 
+def deal_ip_reqrealip(df, **params):
+    """
+    处理ip和reqrealip
+    :param df:
+    :param params:
+    :return:
+    """
+    ip_1 = []
+    ip_2 = []
+    ip_3 = []
+    ip_4 = []
+
+    for ip in df['ip'].values:
+        try:
+            ip_split = ip.split('.')
+            ip_4.append(ip_split[3])
+            ip_3.append(ip_split[2])
+            ip_2.append(ip_split[1])
+            ip_1.append(ip_split[0])
+        except:
+            ip_split = ip.split(':')
+            ip_4.append(ip_split[3])
+            ip_3.append(ip_split[2])
+            ip_2.append(ip_split[1])
+            ip_1.append(ip_split[0])
+
+    reqrealip_1 = []
+    reqrealip_2 = []
+    reqrealip_3 = []
+    reqrealip_4 = []
+
+    for reqrealip in df['reqrealip'].values:
+        try:
+            reqrealip_split = reqrealip.split('.')
+            reqrealip_4.append(reqrealip_split[3])
+            reqrealip_3.append(reqrealip_split[2])
+            reqrealip_2.append(reqrealip_split[1])
+            reqrealip_1.append(reqrealip_split[0])
+        except:
+            reqrealip_split = reqrealip.split(':')
+            reqrealip_4.append(reqrealip_split[3])
+            reqrealip_3.append(reqrealip_split[2])
+            reqrealip_2.append(reqrealip_split[1])
+            reqrealip_1.append(reqrealip_split[0])
+
+    return df
+
+
 def deal_city_province(df, **params):
     """
     处理城市和省份
@@ -179,6 +228,23 @@ def deal_city_province(df, **params):
     :return:
     """
     import json
+
+    ip_city = dict(zip(df['ip'], df['city']))
+
+    # 根据ip填充city
+    cities = []
+    for index in range(df['city'].shape[0]):
+        city = df['city'][index]
+        ip = df['ip'][index]
+        if city == 'nan' and ip in ip_city.keys():
+            cities.append(ip_city[ip])
+        elif city == 'nan' and ip not in ip_city.keys():
+            print('ip: ', ip)
+            cities.append('nan')
+        else:
+            cities.append(city)
+
+    df['city'] = cities
 
     # 中国省市编码地址
     china_city_list_path = DefaultConfig.china_city_list_path
@@ -258,7 +324,7 @@ def deal_idfamd5(df, **params):
     :param params:
     :return:
     """
-    del df['idfamd5']
+    # del df['idfamd5']
 
     return df
 
@@ -531,8 +597,8 @@ def deal_os(df, **params):
         # 先将所有值转化为小写
         df['os'] = df['os'].apply(lambda x: x.lower())
         # 如果所有值都相同，则剔除
-        if len(set(df['os'])) is 1:
-            del df['os']
+        # if len(set(df['os'])) is 1:
+        #     del df['os']
 
     return df
 
@@ -566,7 +632,7 @@ def deal_osv(df, **params):
     df['osv_2'] = osv_2
     df['osv_3'] = osv_3
 
-    del df['osv']
+    # del df['osv']
 
     return df
 
@@ -628,9 +694,10 @@ def deal_h_w_ppi(df, fillna_type, **params):
     # max_min_scaler = lambda x: (x - np.min(x)) / (np.max(x) - np.min(x))
 
     # # 添加面积列
-    df['h_w'] = df['h'] * df['w']
-    df['h_2'] = df['h'] * df['h']
-    df['w_2'] = df['w'] * df['w']
+    df['size'] = (np.sqrt(df['h'] ** 2 + df['w'] ** 2) / 2.54)
+    df['ratio'] = df['h'] / df['w']
+    df['px'] = df['ppi'] * df['size']
+    df['mj'] = df['h'] * df['w']
 
     # # 添加宽高列
     # df['aspect_ratio'] = df['h'] / df['w']
@@ -640,6 +707,92 @@ def deal_h_w_ppi(df, fillna_type, **params):
     # df['ppi'] = df[['ppi']].apply(max_min_scaler)
     # df['area'] = df[['area']].apply(max_min_scaler)
     # df['aspect_ratio'] = df[['aspect_ratio']].apply(max_min_scaler)
+
+    return df
+
+
+def add_feature(df, **params):
+    """
+    添加特征
+    :param df:
+    :param params:
+    :return:
+    """
+
+    import gc
+    from tqdm import tqdm
+    # 强特征进行组合
+    Fusion_attributes = ['make_adunitshowid', 'adunitshowid_model', 'adunitshowid_ratio', 'make_model',
+                         'make_osv', 'make_ratio', 'model_osv', 'model_ratio', 'model_h', 'ratio_osv']
+
+    for attribute in tqdm(list(Fusion_attributes)):
+        name = "Fusion_attr_" + attribute
+        dummy = 'label'
+        cols = attribute.split("_")
+        cols_with_dummy = cols.copy()
+        cols_with_dummy.append(dummy)
+        gp = df[cols_with_dummy].groupby(by=cols)[[dummy]].count().reset_index().rename(index=str,
+                                                                                        columns={dummy: name})
+        df = df.merge(gp, on=cols, how='left')
+
+    # 对ip地址和reqrealip地址进行分割 定义一个machine的关键字
+    df['ip2'] = df['ip'].apply(lambda x: '.'.join(x.split('.')[0:2]))
+    df['ip3'] = df['ip'].apply(lambda x: '.'.join(x.split('.')[0:3]))
+    df['reqrealip2'] = df['reqrealip'].apply(lambda x: '.'.join(x.split('.')[0:2]))
+    df['reqrealip3'] = df['reqrealip'].apply(lambda x: '.'.join(x.split('.')[0:3]))
+    df['machine'] = 1000 * df['model'] + df['make']
+
+    var_mean_attributes = ['adunitshowid', 'make', 'model', 'ver']
+    for attr in tqdm(list(var_mean_attributes)):
+        # 统计关于ratio的方差和均值特征
+        var_label = 'ratio'
+        var_name = 'var_' + attr + '_' + var_label
+        gp = df[[attr, var_label]].groupby(attr)[var_label].var().reset_index().rename(index=str, columns={
+            var_label: var_name})
+        df = df.merge(gp, on=attr, how='left')
+        df[var_name] = df[var_name].fillna(0).astype(int)
+
+        mean_label = 'ratio'
+        mean_name = 'mean_' + attr + '_' + mean_label
+        gp = df[[attr, mean_label]].groupby(attr)[mean_label].mean().reset_index().rename(index=str, columns={
+            mean_label: mean_name})
+        df = df.merge(gp, on=attr, how='left')
+        df[mean_name] = df[mean_name].fillna(0).astype(int)
+
+        # 统计关于h的方差和均值特征
+        var_label = 'h'
+        var_name = 'var_' + attr + '_' + var_label
+        gp = df[[attr, var_label]].groupby(attr)[var_label].var().reset_index().rename(index=str,
+                                                                                       columns={
+                                                                                           var_label: var_name})
+        df = df.merge(gp, on=attr, how='left')
+        df[var_name] = df[var_name].fillna(0).astype(int)
+
+        mean_label = 'h'
+        mean_name = 'mean_' + attr + '_' + mean_label
+        gp = df[[attr, mean_label]].groupby(attr)[mean_label].mean().reset_index().rename(index=str, columns={
+            mean_label: mean_name})
+        df = df.merge(gp, on=attr, how='left')
+        df[mean_name] = df[mean_name].fillna(0).astype(int)
+
+        # 统计关于h的方差和均值特征
+        var_label = 'w'
+        var_name = 'var_' + attr + '_' + var_label
+        gp = df[[attr, var_label]].groupby(attr)[var_label].var().reset_index().rename(index=str,
+                                                                                       columns={
+                                                                                           var_label: var_name})
+        df = df.merge(gp, on=attr, how='left')
+        df[var_name] = df[var_name].fillna(0).astype(int)
+
+        mean_label = 'w'
+        mean_name = 'mean_' + attr + '_' + mean_label
+        gp = df[[attr, mean_label]].groupby(attr)[mean_label].mean().reset_index().rename(index=str, columns={
+            mean_label: mean_name})
+        df = df.merge(gp, on=attr, how='left')
+        df[mean_name] = df[mean_name].fillna(0).astype(int)
+
+        del gp
+        gc.collect()
 
     return df
 
@@ -708,8 +861,11 @@ def xgb_model(new_train, y, new_test, columns, **params):
     :return:
     """
     xgb_params = {'booster': 'gbtree',
-                  'eta': 0.01, 'max_depth': 5, 'subsample': 0.8, 'colsample_bytree': 0.8,
-                  'objective': 'binary:logistic',
+                  'eta': 0.01,
+                  'max_depth': 5,
+                  'subsample': 0.8,
+                  'colsample_bytree': 0.8,
+                  'objective': 'binary',
                   'eval_metric': 'auc',
                   'silent': True,
                   }
@@ -889,10 +1045,14 @@ def model_predict(traindata, label, testdata, **params):
     :param params:
     :return:
     """
-    train = np.array(traindata.drop(DefaultConfig.delete_columns, axis=1).astype(int))
-    test = np.array(testdata.drop(DefaultConfig.delete_columns, axis=1).astype(int))
+    delete_columns = [i for i in DefaultConfig.delete_columns if i in list(traindata.columns)]
+
+    train = np.array(traindata.drop(delete_columns, axis=1).astype(int))
+    test = np.array(testdata.drop(delete_columns, axis=1).astype(int))
     columns = [i for i in traindata.columns if i not in DefaultConfig.delete_columns]
 
+    print('columns: ', columns)
+    print('\n')
     for model in list(DefaultConfig.select_model):
         if model is 'lgb':
             print('model is :', model)
@@ -998,50 +1158,78 @@ def draw_feature(models, **params):
             plt.show()
 
 
-def merge(**params):
-    project_path = DefaultConfig.project_path
-
-    lgb_path = project_path + '/data/submit/submit_lgb.csv'
-    xgb_path = project_path + '/data/submit/submit_xgboost.csv'
-    cgb_path = project_path + '/data/submit/judge_by_catboost.csv'
-
-    lgb = pd.read_csv(lgb_path)
-    xgb = pd.read_csv(xgb_path)
-    cgb = pd.read_csv(cgb_path)
-
-    label = []
-    for i in range(cgb.shape[0]):
-        one = 0
-        zero = 0
-
-        if int(lgb.ix[i, 'label']) is 1:
-            one += 1
-        else:
-            zero += 1
-
-        if int(xgb.ix[i, 'label']) is 1:
-            one += 1
-        else:
-            zero += 1
-
-        if int(cgb.ix[i, 'label']) is 1:
-            one += 1
-        else:
-            zero += 1
-
-        if one > zero:
-            label.append(1)
-        else:
-            label.append(0)
-
-    cgb['label'] = label
-
-    cgb.to_csv(project_path + '/data/submit/merge.csv', index=None)
-
-
 if __name__ == '__main__':
-    merge()
+    model = 'lgb'
+    if os.path.exists(DefaultConfig.lgb_feature_cache_path) and model is 'lgb':
+        # 读取feature_importance_df
+        feature_importance_df = reduce_mem_usage(
+            pd.read_hdf(path_or_buf=DefaultConfig.lgb_feature_cache_path, key=model, mode='r'))
+
+        # 按照flod分组
+        group = feature_importance_df.groupby(by=['fold'])
+
+        result = []
+        for key, value in group:
+            value = value[['feature', 'importance']]
+
+            result.append(value)
+
+        result = pd.concat(result)
+        keys = []
+        values = []
+        # 5折数据取平均值
+        for key, value in result.groupby(['feature'])['importance'].agg('mean').sort_values(ascending=False).items():
+            keys.append(key)
+            values.append(value)
+
+        print(keys)
+        print(values)
 
 
 
 
+
+
+# def merge(**params):
+#     project_path = DefaultConfig.project_path
+#
+#     lgb_path = project_path + '/data/submit/submit_lgb.csv'
+#     xgb_path = project_path + '/data/submit/submit_xgboost.csv'
+#     cgb_path = project_path + '/data/submit/judge_by_catboost.csv'
+#
+#     lgb = pd.read_csv(lgb_path)
+#     xgb = pd.read_csv(xgb_path)
+#     cgb = pd.read_csv(cgb_path)
+#
+#     label = []
+#     for i in range(cgb.shape[0]):
+#         one = 0
+#         zero = 0
+#
+#         if int(lgb.ix[i, 'label']) is 1:
+#             one += 1
+#         else:
+#             zero += 1
+#
+#         if int(xgb.ix[i, 'label']) is 1:
+#             one += 1
+#         else:
+#             zero += 1
+#
+#         if int(cgb.ix[i, 'label']) is 1:
+#             one += 1
+#         else:
+#             zero += 1
+#
+#         if one > zero:
+#             label.append(1)
+#         else:
+#             label.append(0)
+#
+#     cgb['label'] = label
+#
+#     cgb.to_csv(project_path + '/data/submit/merge.csv', index=None)
+#
+#
+# if __name__ == '__main__':
+#     merge()

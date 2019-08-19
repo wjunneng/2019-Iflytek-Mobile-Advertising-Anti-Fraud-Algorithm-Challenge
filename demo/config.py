@@ -26,7 +26,7 @@ class DefaultConfig(object):
     submit_cgb_path = project_path + '/data/submit/submit_cgb.csv'
 
     # select_model
-    select_model = ['xgb']
+    select_model = ['lgb']
 
     # cache
     traindata_cache_path = project_path + '/data/cache/traindata.h5'
@@ -47,7 +47,7 @@ class DefaultConfig(object):
     no_replace = True
 
     # 去除的columns
-    delete_columns = ['sid', 'label', 'nginxtime', 'begintime']
+    delete_columns = ['sid', 'label', 'nginxtime', 'begintime', 'ip', 'reqrealip', 'ver', 'os', 'osv', 'idfamd5']
 
     # 模型保存路径
     lgb_model_save_path = project_path + '/model/lgb_model.pkl'

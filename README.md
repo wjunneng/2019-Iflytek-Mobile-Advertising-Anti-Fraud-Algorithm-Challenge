@@ -39,7 +39,7 @@
 
 完: 媒体信息	pkgname	                string	                包名(MD5加密)
 
-媒体信息	ver	                             string	                 app版本
+完: 媒体信息	ver	                             string	                 app版本
 
 完: 媒体信息	adunitshowid	      string	                对外广告位ID（MD5加密）
 
@@ -53,13 +53,13 @@
 
 
 
-IP信息	     ip	                               string	                  客户端IP地址
+完: IP信息	     ip	                               string	                  客户端IP地址
 
 完: IP信息	     city	                            string	                 城市
 
 完: IP信息	     province                  string	                  省份
 
-IP信息	     reqrealip	               string	                    请求的http协议头携带IP，有可能是下游服务器的ip
+完: IP信息	     reqrealip	               string	                    请求的http协议头携带IP，有可能是下游服务器的ip
 
 
 

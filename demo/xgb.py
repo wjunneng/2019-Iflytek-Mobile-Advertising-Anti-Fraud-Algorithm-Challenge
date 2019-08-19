@@ -21,7 +21,7 @@ def using_best_param(train, test, label):
                           custom_metric='auc',
                           eval_metric='auc',
                           random_seed=2019,
-                          objective='binary:logistic',
+                          objective='binary',
                           l2_leaf_reg=5.0,
                           silent=True,
                           nthread=11)
@@ -56,3 +56,4 @@ if __name__ == '__main__':
     judge_by_catboost = using_best_param(train=train, test=test, label=train_label)
     judge_by_catboost.to_csv(DefaultConfig.project_path + '/data/submit/submit_xgboost.csv', index=False,
                              encoding='utf-8')
+    print(time.clock() - start)

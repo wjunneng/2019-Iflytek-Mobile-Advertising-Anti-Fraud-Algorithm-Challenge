@@ -59,6 +59,10 @@ def main():
         data = deal_apptype(data)
         print('数据集 处理app 耗时： %s \n' % str(time.clock() - start))
 
+        # IP信息：处理IP和reqrealip
+        data = deal_ip_reqrealip(data)
+        print('数据集 ip和reqrealip 耗时： %s \n' % str(time.clock() - start))
+
         # IP信息：处理城市和省份  【up:0.01】
         data = deal_city_province(data)
         print('数据集 处理城市和省份 耗时： %s \n' % str(time.clock() - start))
@@ -67,9 +71,9 @@ def main():
         data = deal_orientation(data)
         print('数据集 处理横竖屏 耗时： %s \n' % str(time.clock() - start))
 
-        # # # 时间：处理时间 效果不好    【down:0.0011】
-        # data = conversion_time(data, ['nginxtime', 'begintime'])
-        # print('数据集 处理时间 耗时： %s \n' % str(time.clock() - start))
+        # # 时间：处理时间 效果不好    【down:0.0011】
+        data = conversion_time(data, ['nginxtime', 'begintime'])
+        print('数据集 处理时间 耗时： %s \n' % str(time.clock() - start))
 
         # 设备信息：处理idfamd5    【up:0.01】
         data = deal_idfamd5(data)
@@ -112,6 +116,10 @@ def main():
         data = deal_h_w_ppi(data, 'mode')
         print('数据集 长/宽/密度 耗时： %s \n' % str(time.clock() - start))
 
+        # 添加特征列
+        data = add_feature(data)
+        print('数据集 添加特征列 耗时： %s \n' % str(time.clock() - start))
+
         # 对除了'sid'外的columns进行one_hot编码
         data = one_hot_col(data)
         print('\n对除了“sid”外的columns进行one_hot编码 耗时： %s \n' % str(time.clock() - start))
@@ -135,7 +143,6 @@ def main():
                 label.to_hdf(path_or_buf=DefaultConfig.label_cache_path, key='label')
                 test.to_hdf(path_or_buf=DefaultConfig.testdata_cache_path, key='test')
 
-    print(train.head())
     print('\n加载数据 耗时： %s \n' % str(time.clock() - start))
     # 模型预测
     model_predict(train, label.values, test)

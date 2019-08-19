@@ -79,9 +79,10 @@ def using_best_param(params, train, test, label):
     :param params:
     :return:
     """
-    model = CatBoostClassifier(iterations=946, depth=8, cat_features=train.columns, learning_rate=0.05,
-                                   custom_metric='F1', eval_metric='F1', random_seed=2019,
-                                   l2_leaf_reg=5.0, logging_level='Silent', thread_count=11, task_type='GPU', gpu_ram_part=0.9)
+    model = CatBoostClassifier(iterations=1000, depth=8, cat_features=train.columns, learning_rate=0.05,
+                               custom_metric='F1', eval_metric='F1', random_seed=2019,
+                               l2_leaf_reg=5.0, logging_level='Silent', thread_count=11, task_type='GPU',
+                               gpu_ram_part=0.9)
     model.fit(train, label)
     y_pred = model.predict(test).tolist()
 
@@ -141,6 +142,39 @@ if __name__ == '__main__':
     #           'logging_level': 'Silent',
     #           'loss_function': 'Logloss'}
 
+    # using lgb feature
+    select_feature = ['imeimd5',
+                      'city',
+                      'adidmd5',
+                      'nginxtime_minute',
+                      'ip2', 'nginxtime_hour',
+                      'Fusion_attr_adunitshowid_model', 'ip3',
+                      'macmd5',
+                      'Fusion_attr_adunitshowid_ratio',
+                      'nginxtime-begintime', 'nginxtime_day',
+                      'Fusion_attr_make_adunitshowid',
+                      'Fusion_attr_model_osv', 'mean_model_w', 'mean_model_h', 'model',
+                      'var_model_h',
+                      'adunitshowid', 'var_model_w', 'Fusion_attr_model_h', 'Fusion_attr_model_ratio',
+                      'Fusion_attr_ratio_osv',
+                      'Fusion_attr_make_model', 'var_adunitshowid_h', 'Fusion_attr_make_osv', 'mean_adunitshowid_h',
+                      'Fusion_attr_make_ratio', 'var_adunitshowid_w', 'mean_adunitshowid_w', 'machine', 'mediashowid',
+                      'begintime_minute', 'reqrealip3', 'reqrealip2', 'apptype', 'h', 'pkgname', 'osv_2', 'ntt',
+                      'province',
+                      'begintime_hour', 'size', 'mean_ver_h', 'mean_ver_w', 'carrier', 'px', 'osv_1', 'var_ver_h',
+                      # 'openudidmd5',
+                      'ver_2', 'var_ver_w', 'begintime_day', 'osv_3', 'make', 'ver_3', 'var_make_h', 'var_make_w',
+                      'mean_make_h', 'mj',
+                      'mean_make_w', 'w', 'ver_1', 'ppi', 'ratio', 'lan', 'dvctype',
+                      # 'mean_adunitshowid_ratio',
+                      'orientation'
+                      # ,'mean_model_ratio'
+                      ]
+    train = train[select_feature]
+    test = test[select_feature]
+
+    train = train.astype(int)
+    test = test.astype(int)
     judge_by_catboost = using_best_param(params=params, train=train, test=test, label=train_label)
     judge_by_catboost.to_csv(DefaultConfig.project_path + '/data/submit/submit_catboost.csv', index=False,
                              encoding='utf-8')
