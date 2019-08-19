@@ -31,72 +31,71 @@
 
 
 
-基本数据	sid	                             string	                 样本id/请求会话sid
+完: 基本数据	sid	                             string	                 样本id/请求会话sid
 
-基本数据	label	                         int	                       是否作弊
+完: 基本数据	label	                         int	                       是否作弊
 
 
 
-媒体信息	pkgname	                string	                包名(MD5加密)
+完: 媒体信息	pkgname	                string	                包名(MD5加密)
 
 媒体信息	ver	                             string	                 app版本
 
-媒体信息	adunitshowid	      string	                对外广告位ID（MD5加密）
+完: 媒体信息	adunitshowid	      string	                对外广告位ID（MD5加密）
 
-媒体信息	mediashowid	       string	                  对外媒体ID（MD5加密）
+完: 媒体信息	mediashowid	       string	                  对外媒体ID（MD5加密）
 
-媒体信息	apptype	                  int	                         app所属分类
-
-
+完: 媒体信息	apptype	                  int	                         app所属分类
 
 
-时间	         nginxtime	              bigint	                请求到达服务时间，单位ms
+
+完: 时间	         nginxtime	              bigint	                请求到达服务时间，单位ms
 
 
 
 IP信息	     ip	                               string	                  客户端IP地址
 
-IP信息	     city	                            string	                 城市
+完: IP信息	     city	                            string	                 城市
 
-IP信息	     province                  string	                  省份
+完: IP信息	     province                  string	                  省份
 
 IP信息	     reqrealip	               string	                    请求的http协议头携带IP，有可能是下游服务器的ip
 
 
 
-设备信息	adidmd5	                string	                    Adroid ID的MD5值
+完: 设备信息	adidmd5	                string	                    Adroid ID的MD5值
 
-设备信息	imeimd5	                 string	                    imei的MD5值
+完: 设备信息	imeimd5	                 string	                    imei的MD5值
 
-设备信息	idfamd5	                  string	                   idfa的MD5值
+完: 设备信息	idfamd5	                  string	                   idfa的MD5值
 
-设备信息	openudidmd5	      string	                   openudid的MD5值
+完: 设备信息	openudidmd5	      string	                   openudid的MD5值
 
-设备信息	macmd5	                string	                   mac的MD5值
+完: 设备信息	macmd5	                string	                   mac的MD5值
 
-设备信息	dvctype	                   int	                         设备类型 0 – 未知,1 – PC,2 – 手机, 3– 平板,4– 电视盒,5– 智能电视,6 – 可穿戴设备,7 – 智能家电,8 - 音箱,9 - 智能硬件
+完: 设备信息	dvctype	                   int	                         设备类型 0 – 未知,1 – PC,2 – 手机, 3– 平板,4– 电视盒,5– 智能电视,6 – 可穿戴设备,7 – 智能家电,8 - 音箱,9 - 智能硬件
 
-设备信息	model	                       string	                    机型
+完: 设备信息	model	                       string	                    机型
 
-设备信息	make	                       string	                     厂商
+完: 设备信息	make	                       string	                     厂商
 
-设备信息	ntt                              	int	                           网络类型 0-未知, 1-有线网, 2-WIFI, 3-蜂窝网络未知, 4-2G, 5-3G, 6–4G
+完: 设备信息	ntt                              	int	                           网络类型 0-未知, 1-有线网, 2-WIFI, 3-蜂窝网络未知, 4-2G, 5-3G, 6–4G
 
-设备信息	carrier                     	string	                    运营商 0-未知, 46000-移动, 46001-联通, 46003-电信
+完: 设备信息	carrier                     	string	                    运营商 0-未知, 46000-移动, 46001-联通, 46003-电信
 
-设备信息	os	                              string	                    操作系统 : Android, iOS
+完: 设备信息	os	                              string	                    操作系统 : Android, iOS
 
-设备信息	osv                             	string	                   操作系统版本
+完: 设备信息	osv                             	string	                   操作系统版本
 
-设备信息	orientation	            int	                            横竖屏:0竖屏，1横屏
+完: 设备信息	orientation	            int	                            横竖屏:0竖屏，1横屏
 
-设备信息	lan	                             string	                     语言
+完: 设备信息	lan	                             string	                     语言
 
-设备信息	h	                                 int	                          设备高
+完: 设备信息	h	                                 int	                          设备高
 
-设备信息	w	                                int	                           设备宽
+完: 设备信息	w	                                int	                           设备宽
 
-设备信息	ppi                            	 int	                          屏幕密度
+完: 设备信息	ppi                            	 int	                          屏幕密度
 
 
 

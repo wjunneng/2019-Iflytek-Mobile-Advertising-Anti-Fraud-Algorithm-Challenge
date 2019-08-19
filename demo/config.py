@@ -23,9 +23,10 @@ class DefaultConfig(object):
     # submit file
     submit_lgb_path = project_path + '/data/submit/submit_lgb.csv'
     submit_xgb_path = project_path + '/data/submit/submit_xgb.csv'
+    submit_cgb_path = project_path + '/data/submit/submit_cgb.csv'
 
     # select_model
-    select_model = ['lgb']
+    select_model = ['xgb']
 
     # cache
     traindata_cache_path = project_path + '/data/cache/traindata.h5'
@@ -33,6 +34,7 @@ class DefaultConfig(object):
     label_cache_path = project_path + '/data/cache/label.h5'
     lgb_feature_cache_path = project_path + '/data/cache/feature_lgb.h5'
     xgb_feature_cache_path = project_path + '/data/cache/feature_xgb.h5'
+    cgb_feature_cache_path = project_path + '/data/cache/feature_cgb.h5'
 
     # foreign
     china_city_list_path = project_path + '/data/foreign/china_city_list.json'
@@ -41,11 +43,22 @@ class DefaultConfig(object):
     # test foreign
     testdata_feature_ip_path = project_path + '/data/foreign/testdata_feature_ip.json'
 
-    # save
-    save = True
+    # no_replace
+    no_replace = True
 
     # 去除的columns
-    delete_columns = ['sid', 'label', 'ip', 'reqrealip', 'nginxtime', 'begintime']
+    delete_columns = ['sid', 'label', 'nginxtime', 'begintime']
+
+    # 模型保存路径
+    lgb_model_save_path = project_path + '/model/lgb_model.pkl'
+    xgb_model_save_path = project_path + '/model/xgb_model.pkl'
+    cgb_model_save_path = project_path + '/model/cgb_model.pkl'
+
+    # 测试用例
+    test = False
+    test_traindata_cache_path = project_path + '/data/cache/test_traindata.h5'
+    test_testdata_cache_path = project_path + '/data/cache/test_testdata_feature.h5'
+    test_label_cache_path = project_path + '/data/cache/test_label.h5'
 
 
 if __name__ == '__main__':

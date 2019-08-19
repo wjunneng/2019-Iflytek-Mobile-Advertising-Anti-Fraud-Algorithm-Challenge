@@ -159,5 +159,5 @@ if __name__ == '__main__':
     # print('train:\n')
     # CrimeSpider(traindata[['sid', 'ip']], 'ip').main(DefaultConfig.traindata_ip_path)
     # 测试集
-    print('test:\n')
-    CrimeSpider(testdata_feature[['sid', 'ip']], 'ip').main(DefaultConfig.testdata_feature_ip_path)
+    # print('test:\n')
+    # CrimeSpider(testdata_feature[['sid', 'ip']], 'ip').main(DefaultConfig.testdata_feature_ip_path)
