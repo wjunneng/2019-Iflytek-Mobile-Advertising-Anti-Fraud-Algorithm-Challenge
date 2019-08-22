@@ -26,7 +26,7 @@ class DefaultConfig(object):
     submit_cgb_path = project_path + '/data/submit/submit_cgb.csv'
 
     # select_model
-    select_model = ['lgb']
+    select_model = ['xgb']
 
     # cache
     traindata_cache_path = project_path + '/data/cache/traindata.h5'
@@ -44,7 +44,7 @@ class DefaultConfig(object):
     testdata_feature_ip_path = project_path + '/data/foreign/testdata_feature_ip.json'
 
     # no_replace
-    no_replace = True
+    no_replace = False
 
     # 去除的columns
     delete_columns = ['sid', 'label', 'nginxtime', 'begintime', 'ip', 'reqrealip', 'ver', 'os', 'osv', 'idfamd5']

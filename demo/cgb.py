@@ -73,23 +73,23 @@ def catboost_param_tune(params, train_set, train_label, cat_dims=None, n_splits=
         return ps.bestparam()
 
 
-def using_best_param(params, train, test, label):
+def using_best_param(train, test, label):
     """
     使用最好的参数训练模型
     :param params:
     :return:
     """
-    model = CatBoostClassifier(iterations=1000, depth=8, cat_features=train.columns, learning_rate=0.05,
-                               custom_metric='F1', eval_metric='F1', random_seed=2019,
-                               l2_leaf_reg=5.0, logging_level='Silent', thread_count=11, task_type='GPU',
-                               gpu_ram_part=0.9)
+    model = CatBoostClassifier(iterations=1000, learning_rate=0.1, max_depth=7, cat_features=train.columns,verbose=100, custom_metric='F1', random_seed=2019,
+                               early_stopping_rounds=200, task_type='CPU', thread_count=11,
+                               eval_metric='F1')
+
     model.fit(train, label)
     y_pred = model.predict(test).tolist()
 
     judge_df = pd.DataFrame()
     judge_df['sid'] = range(test.shape[0])
     judge_df['label'] = y_pred
-    judge_df['label'] = judge_df['label'].apply(lambda x: 1 if x >= 0.5 else 0)
+    judge_df['label'] = judge_df['label'].apply(lambda x: 1 if x >= 0.49 else 0)
 
     return judge_df[['sid', 'label']]
 
@@ -175,6 +175,6 @@ if __name__ == '__main__':
 
     train = train.astype(int)
     test = test.astype(int)
-    judge_by_catboost = using_best_param(params=params, train=train, test=test, label=train_label)
+    judge_by_catboost = using_best_param(train=train, test=test, label=train_label)
     judge_by_catboost.to_csv(DefaultConfig.project_path + '/data/submit/submit_catboost.csv', index=False,
                              encoding='utf-8')
